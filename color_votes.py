@@ -4,11 +4,14 @@ import datetime
 
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import matplotlib.colors as mcolors
 import numpy as np
 import sys
 
 votes='number of votes'
 name='sketch names'
+tk_blue = "#72CDFE"
+tk_orange = "#F7941D"
 def proc_opts():
     parser = argparse.ArgumentParser(description="Color vote visualization")
     parser.add_argument("filename")
@@ -69,12 +72,15 @@ def make_timeseries(votes_over_time):
 
 def make_heatmap(heatmap, dates, places):
     x, y = np.meshgrid(places, dates)
+    color_map = mcolors.LinearSegmentedColormap.from_list("custom_cmap", [tk_blue, tk_orange])
     
-    fig, ax = plt.subplots(figsize = (9, 9))
+    fig, ax = plt.subplots(figsize = (9, 24))
     fig.autofmt_xdate()
-    plot = ax.pcolormesh(x, y, heatmap, cmap='plasma')
+    plot = ax.pcolormesh(x, y, heatmap, cmap=color_map, edgecolors='black', lw=0.1)
 
-    ax.set_title("Votes histogram over time")
+    ax.yaxis.set_major_formatter(mdates.DateFormatter('%B, %Y'))
+    ax.yaxis.set_major_locator( mdates.MonthLocator(interval=3))
+    ax.set_title("Number of votes per place over time")
     fig.colorbar(plot)
 
     return fig
@@ -87,6 +93,8 @@ def get_heatmap_data(df):
     slc_df = slc_df[top_bool] 
     # Remove ties/duplicates
     slc_df.drop_duplicates(inplace=True)
+    # Imputate missing months
+
     uniq_dates = pd.unique(df['date'])
     heatmap_array = []
     placement = [0] * (max_place)
